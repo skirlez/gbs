@@ -2364,6 +2364,7 @@ func _ready():
 				
 				var pos = Vector2(j, i)
 				# all of the level data is from the "top right" versions of the patterns
+				# TODO: figure out if this is supposed to be rotation or flipping
 				if k == 0:
 					pos.x = PATTERN_SIZE - pos.x - 1
 				if k == 2:
@@ -2383,7 +2384,7 @@ func _ready():
 				for j in PATTERN_SIZE:
 					instances[(m * LEVEL_SIZE * LEVEL_SIZE / 2.0) # bottom half
 								+ k * PATTERN_SIZE	# in right corner or not
-								+ i * LEVEL_SIZE + j # movement inside right corner
+								+ i * LEVEL_SIZE + j # movement inside corner
 					] = section_instances[m * 2 + k][i * PATTERN_SIZE + j]
 
 	for i in LEVEL_SIZE:

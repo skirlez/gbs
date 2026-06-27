@@ -78,8 +78,6 @@ func _physics_process(_delta: float) -> void:
 			
 			my_tile.x = round(my_tile.x / RECT_SIZE)
 			my_tile.z = round(my_tile.z / RECT_SIZE) + 1
-			print(my_tile.x)
-			print(my_tile.z)
 			var index = my_tile.z * LEVEL_SIZE + my_tile.x
 			var instances =	$"../LevelObjects".instances
 			if index >= 0 and index <= len(instances) - 1:
