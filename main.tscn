@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://bcxd1dbcn5on3"]
+
+[ext_resource type="Shader" uid="uid://deio1mkge5wwc" path="res://shaders/ground.gdshader" id="1_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://bsr8s44xd2od6" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="AudioStream" uid="uid://boaq7n7liavs6" path="res://sounds/music.mp3" id="1_lquwl"]
+[ext_resource type="Texture2D" uid="uid://b8n87laidbkga" path="res://pattern.png" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://3l1a8hue7r8a" path="res://level_objects.gd" id="2_lquwl"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+render_priority = 0
+shader = ExtResource("1_1bvp3")
+shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/texture_albedo = ExtResource("2_0xm2m")
+shader_parameter/uv1_scale = Vector3(125, 125, 1)
+shader_parameter/uv1_offset = Vector3(0.25, 0.25, 0)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
+material = SubResource("ShaderMaterial_h2yge")
+subdivide_width = 512
+subdivide_depth = 512
+
+[node name="Root" type="Node3D" unique_id=1602515127]
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=346635477]
+stream = ExtResource("1_lquwl")
+autoplay = true
+
+[node name="LevelObjects" type="Node" parent="." unique_id=1894930888]
+script = ExtResource("2_lquwl")
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1115808240]
+transform = Transform3D(500, 0, 0, 0, 500, 0, 0, 0, 500, 0, 0, 0)
+mesh = SubResource("PlaneMesh_h2yge")
+
+[node name="Player" parent="." unique_id=611861365 instance=ExtResource("1_ig7tw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Player" unique_id=553844438]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 215.93628, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=1752917082]
+transform = Transform3D(1, 0, 0, 0, 0.7450455, 0.6670137, 0, -0.6670137, 0.7450455, 0, 4.3380046, 4.2021494)

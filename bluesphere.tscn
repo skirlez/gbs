@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bvbs32shwvlld"]
+
+[ext_resource type="Script" uid="uid://bqiegh58u7chm" path="res://bluesphere.gd" id="1_c2iv8"]
+[ext_resource type="Material" uid="uid://i1h83q8ilq3h" path="res://shaders/sphere_material.tres" id="2_n5bwv"]
+[ext_resource type="AudioStream" uid="uid://2gbege2br5w8" path="res://sounds/bluesphere.wav" id="3_n5bwv"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_g2tyk"]
+material = ExtResource("2_n5bwv")
+radial_segments = 8
+rings = 8
+
+[node name="Bluesphere" type="Node3D" unique_id=1029848609]
+script = ExtResource("1_c2iv8")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=1003591902]
+instance_shader_parameters/albedo = Color(0, 0.40784314, 0.7921569, 1)
+mesh = SubResource("SphereMesh_g2tyk")
+
+[node name="CollectSound" type="AudioStreamPlayer" parent="." unique_id=1551747822]
+stream = ExtResource("3_n5bwv")

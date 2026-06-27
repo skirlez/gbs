@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://b36jojwqn1ufn"]
+
+[ext_resource type="Script" uid="uid://deh40jweajip7" path="res://mesh.gd" id="1_jiui3"]
+[ext_resource type="Shader" uid="uid://c8j27dlxxmbqg" path="res://shaders/ring.gdshader" id="1_jpbn5"]
+[ext_resource type="Script" uid="uid://cwe33ydyjsq3b" path="res://ring.gd" id="1_rlsp6"]
+[ext_resource type="AudioStream" uid="uid://bx8lc2vvrhbp3" path="res://sounds/ring.wav" id="4_7w7ck"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_c63bx"]
+render_priority = 0
+shader = ExtResource("1_jpbn5")
+shader_parameter/albedo = Color(0.9882353, 0.9882353, 0, 1)
+shader_parameter/albedo_texture_size = Vector2i(0, 0)
+shader_parameter/point_size = 1.0
+shader_parameter/roughness = 0.3
+shader_parameter/metallic_texture_channel = Vector4(1, 0, 0, 0)
+shader_parameter/specular = 1.0
+shader_parameter/metallic = 0.22999999485904
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
+
+[sub_resource type="TorusMesh" id="TorusMesh_jpbn5"]
+material = SubResource("ShaderMaterial_c63bx")
+inner_radius = 0.3
+outer_radius = 0.4
+rings = 12
+ring_segments = 8
+
+[node name="Ring" type="Node3D" unique_id=1534341730]
+script = ExtResource("1_rlsp6")
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=347743448]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("TorusMesh_jpbn5")
+script = ExtResource("1_jiui3")
+
+[node name="CollectSound" type="AudioStreamPlayer" parent="." unique_id=66589225]
+stream = ExtResource("4_7w7ck")
