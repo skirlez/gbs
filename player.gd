@@ -17,13 +17,18 @@ enum WalkAngle {
 	LEFT = 2,
 	DOWN = 3
 }
+var jump_timer = 0
+const TOTAL_JUMP_TICS = 17 * 2
+const VISUAL_JUMP_HEIGHT = 2.5
+
 const WALK_ANGLE_OFFSETS = [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]
+const COLLISION_RADIUS = 0.2
+
 var walk_angle = WalkAngle.UP
 
 const PERM_Y_OFFSET = 1;
 const JUMP_VELOCITY = 0.3;
 var y_offset = 0;
-var y_speed = 0;
 
 var pos: Vector2i
 var walk_start: Vector2i
@@ -40,8 +45,8 @@ const LEVEL_SIZE = PATTERN_SIZE * 2
 const RECT_SIZE = 4
 
 
-var total_walk_tics = 20
-var total_rotation_tics = 20
+var total_walk_tics = 16 
+var total_rotation_tics = 16
 
 func grid_to_world_2d(grid_pos: Vector2i) -> Vector2:
 	const GRID_OFFSET = Vector2i.ONE * PATTERN_SIZE
@@ -65,14 +70,13 @@ func switch_states(new):
 	match state:
 		States.WALKING:
 			walk_start = Vector2(pos.x, pos.y)
-			
 			@warning_ignore("integer_division")			
 			var dest_offset = WALK_ANGLE_OFFSETS[walk_angle]
 			walk_destination = walk_start + dest_offset
 		States.ROTATING:
 			rotation_start = walk_angle
 			rotation_destination = rotation_start + rotation_direction
-	
+			rotation_direction = 0
 func update_basis(angle):
 	transform.basis = Basis.from_euler(Vector3(0, (angle * PI / 2) - PI / 2, 0)) 
 func update_origin(new_pos):
@@ -82,6 +86,8 @@ func _process(_delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("player_pos", transform.origin)
 	var time = (Time.get_ticks_msec() - state_epoch)
 	var frame_times = time * 60.0 / 1000.0
+
+	# frame_times = timer
 	match state:
 		States.WALKING:
 			var new_pos = lerp(grid_to_world_2d(walk_start), grid_to_world_2d(walk_destination), min(1, frame_times / float(total_walk_tics)))
@@ -90,43 +96,52 @@ func _process(_delta: float) -> void:
 			var angle = lerp(float(rotation_start), float(rotation_destination), min(1, frame_times / float(total_rotation_tics)))
 			update_basis(angle)
 
+func get_tile_for_collision():
+	var progress = timer / float(total_walk_tics)
+	if progress <= COLLISION_RADIUS:
+		return walk_start
+	if progress >= 1 - COLLISION_RADIUS:
+		return walk_destination
+	return null
+func process_collision(tile):
+	if (tile == null):
+		return
+	var index = tile.y * LEVEL_SIZE + tile.x
+	var instances =	$"../LevelObjects".instances
+	if index >= 0 and index <= len(instances) - 1:
+		var inst = instances[index]
+		if is_instance_valid(inst):
+			on_collide_with_instance(inst)
 
 func _physics_process(_delta: float) -> void:
-	y_offset += y_speed
-	if y_offset > 0:
-		y_speed -= 0.01
-	else:
-		y_offset = 0
-	$Mesh.transform.origin.y = y_offset
+	# if not Input.is_action_just_pressed("advance") and state != States.WAITING:
+	# 	return
 	timer += 1
 	match state:
 		States.WAITING:
 			if (timer == 180):
 				switch_states(States.WALKING)
 		States.WALKING:
-			if Input.is_action_just_pressed("jump"):
-				if y_offset == 0:
-					y_speed = JUMP_VELOCITY 
+			if Input.is_action_pressed("jump"):
+				if jump_timer == 0:
+					rotation_direction = 0
+					jump_timer = 1
 					$Jump.play()
+			if jump_timer <= 0:
+				var tile = get_tile_for_collision()
+				process_collision(tile)
+				if Input.is_action_just_pressed("rotate_left"):
+					rotation_direction = 1
+				if Input.is_action_just_pressed("rotate_right"):
+					rotation_direction = -1
 			if (timer == total_walk_tics):
-				if y_offset < 0.5:
-					var my_tile = walk_destination
-					var index = my_tile.y * LEVEL_SIZE + my_tile.x
-					var instances =	$"../LevelObjects".instances
-					if index >= 0 and index <= len(instances) - 1:
-						var inst = instances[index]
-						if is_instance_valid(inst):
-							on_collide_with_instance(inst)
-
 				pos = walk_destination
 				transform.origin = grid_to_world_3d(pos)
-				if y_offset != 0:
+				if jump_timer <= 0:
+					process_collision(pos)
+				if y_offset != 0 or rotation_direction == 0:
 					switch_states(States.WALKING)
-				elif Input.is_action_pressed("rotate_left"):
-					rotation_direction = 1
-					switch_states(States.ROTATING)
-				elif Input.is_action_pressed("rotate_right"):
-					rotation_direction = -1
+				elif (rotation_direction != 0):
 					switch_states(States.ROTATING)
 				else:
 					switch_states(States.WALKING)
@@ -138,7 +153,17 @@ func _physics_process(_delta: float) -> void:
 				walk_angle = angle_final as WalkAngle 
 				update_basis(walk_angle)
 				switch_states(States.WALKING)
-
+	
+	if (jump_timer <= 0):
+		y_offset = 0
+		if (jump_timer == -1):
+			jump_timer = 0
+	else:
+		y_offset = sin((jump_timer / float(TOTAL_JUMP_TICS) * PI)) * VISUAL_JUMP_HEIGHT
+		jump_timer += 1
+		if (jump_timer == TOTAL_JUMP_TICS):
+			jump_timer = -1
+	$Mesh.transform.origin.y = y_offset
 
 func on_collide_with_instance(node: Node3D) -> void:
 	if node is BlueSphere:

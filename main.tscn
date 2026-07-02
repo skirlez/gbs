@@ -24,6 +24,7 @@ subdivide_depth = 512
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=346635477]
 stream = ExtResource("1_lquwl")
 autoplay = true
+parameters/looping = true
 
 [node name="LevelObjects" type="Node" parent="." unique_id=1894930888]
 script = ExtResource("2_lquwl")
@@ -39,4 +40,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 215.93628, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=1752917082]
-transform = Transform3D(1, 0, 0, 0, 0.7450455, 0.6670137, 0, -0.6670137, 0.7450455, 0, 4.3380046, 4.2021494)
+transform = Transform3D(1, 0, 0, 0, 0.76012033, 0.6497824, 0, -0.6497824, 0.76012033, -0.005002439, 5.8317637, 5.149402)
+fov = 57.4

@@ -5,6 +5,7 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_yw0o3")
+shader_parameter/albedo = Color(0, 0.40784314, 0.7921569, 1)
 shader_parameter/albedo_texture_size = Vector2i(0, 0)
 shader_parameter/point_size = 1.0
 shader_parameter/roughness = 1.0

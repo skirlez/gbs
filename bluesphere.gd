@@ -9,5 +9,6 @@ func get_blue_sphere():
 	got = true
 	$CollectSound.play()
 	make_red()
+var redsphere_material = preload("res://materials/redsphere.material")
 func make_red():
-	$Mesh.set_instance_shader_parameter("albedo", Vector4(1, 0, 0, 0))
+	$Mesh.set_surface_override_material(0, redsphere_material)
