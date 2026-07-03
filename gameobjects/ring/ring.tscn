@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://b36jojwqn1ufn"]
 
-[ext_resource type="Script" uid="uid://deh40jweajip7" path="res://mesh.gd" id="1_jiui3"]
-[ext_resource type="Shader" uid="uid://c8j27dlxxmbqg" path="res://shaders/ring.gdshader" id="1_jpbn5"]
-[ext_resource type="Script" uid="uid://cwe33ydyjsq3b" path="res://ring.gd" id="1_rlsp6"]
-[ext_resource type="AudioStream" uid="uid://bx8lc2vvrhbp3" path="res://sounds/ring.wav" id="4_7w7ck"]
+[ext_resource type="Script" uid="uid://cwe33ydyjsq3b" path="res://gameobjects/ring/ring.gd" id="1_k72ep"]
+[ext_resource type="Shader" uid="uid://c8j27dlxxmbqg" path="res://shaders/ring.gdshader" id="2_oe11a"]
+[ext_resource type="AudioStream" uid="uid://bx8lc2vvrhbp3" path="res://sounds/ring.wav" id="3_507gb"]
+[ext_resource type="Script" uid="uid://v8rxr2ovou1j" path="res://gameobjects/ring/rotate.gd" id="3_oe11a"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_c63bx"]
 render_priority = 0
-shader = ExtResource("1_jpbn5")
+shader = ExtResource("2_oe11a")
 shader_parameter/albedo = Color(0.9882353, 0.9882353, 0, 1)
 shader_parameter/albedo_texture_size = Vector2i(0, 0)
 shader_parameter/point_size = 1.0
@@ -28,12 +28,12 @@ rings = 12
 ring_segments = 8
 
 [node name="Ring" type="Node3D" unique_id=1534341730]
-script = ExtResource("1_rlsp6")
+script = ExtResource("1_k72ep")
 
 [node name="Mesh" type="MeshInstance3D" parent="." unique_id=347743448]
 transform = Transform3D(-4.8082526e-08, -1.1, 0, 1.1, -4.8082526e-08, 0, 0, 0, 1.1, 0, 0, 0)
 mesh = SubResource("TorusMesh_jpbn5")
-script = ExtResource("1_jiui3")
+script = ExtResource("3_oe11a")
 
 [node name="CollectSound" type="AudioStreamPlayer" parent="." unique_id=66589225]
-stream = ExtResource("4_7w7ck")
+stream = ExtResource("3_507gb")

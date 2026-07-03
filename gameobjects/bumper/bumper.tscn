@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cb7i3747for8b"]
 
-[ext_resource type="Script" uid="uid://bh6esehth3ola" path="res://bumper.gd" id="1_sn2yj"]
-[ext_resource type="Material" uid="uid://bl52dh6o3wwnt" path="res://materials/bumper.material" id="2_sn2yj"]
+[ext_resource type="Script" uid="uid://bh6esehth3ola" path="res://gameobjects/bumper/bumper.gd" id="1_sn2yj"]
+[ext_resource type="Material" uid="uid://bl52dh6o3wwnt" path="res://gameobjects/bumper/bumper.material" id="2_sn2yj"]
 [ext_resource type="AudioStream" uid="uid://2gbege2br5w8" path="res://sounds/bluesphere.wav" id="3_ou0cc"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_g2tyk"]

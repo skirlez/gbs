@@ -56,10 +56,22 @@ func grid_to_world_3d(grid_pos: Vector2i) -> Vector3:
 	return world_2d_to_world_3d(grid_to_world_2d(grid_pos))
 func world_2d_to_world_3d(world_pos: Vector2) -> Vector3:
 	return Vector3(world_pos.x, PERM_Y_OFFSET, world_pos.y)
+func wrap_grid_pos(grid_pos: Vector2i):
+	grid_pos = Vector2i(grid_pos)
+	if (grid_pos.x < 0):
+		grid_pos.x += LEVEL_SIZE
+	if (grid_pos.y < 0):
+		grid_pos.y += LEVEL_SIZE
+	if (grid_pos.x >= LEVEL_SIZE):
+		grid_pos.x -= LEVEL_SIZE
+	if (grid_pos.y >= LEVEL_SIZE):
+		grid_pos.y -= LEVEL_SIZE
+	return grid_pos
+
 
 func _ready():
-	pos.x = 28
-	pos.y = 16
+	pos.x = 15
+	pos.y = 15
 	update_origin(pos)
 	update_basis(walk_angle)
 	
@@ -101,7 +113,7 @@ func get_tile_for_collision():
 	if progress <= COLLISION_RADIUS:
 		return walk_start
 	if progress >= 1 - COLLISION_RADIUS:
-		return walk_destination
+		return wrap_grid_pos(walk_destination)
 	return null
 func process_collision(tile):
 	if (tile == null):
@@ -122,7 +134,7 @@ func _physics_process(_delta: float) -> void:
 			if (timer == 180):
 				switch_states(States.WALKING)
 		States.WALKING:
-			if Input.is_action_pressed("jump"):
+			if Input.is_action_just_pressed("jump"):
 				if jump_timer == 0:
 					rotation_direction = 0
 					jump_timer = 1
@@ -135,10 +147,18 @@ func _physics_process(_delta: float) -> void:
 				if Input.is_action_just_pressed("rotate_right"):
 					rotation_direction = -1
 			if (timer == total_walk_tics):
-				pos = walk_destination
+				# this is done twice since you need to be able to hold left and right to keep rotating
+				# the above check doesn't check for hold, since if it did, if you held and kept holding through a rotation,
+				# it would register a rotation for the next move too
+					
+				pos = wrap_grid_pos(walk_destination)
 				transform.origin = grid_to_world_3d(pos)
 				if jump_timer <= 0:
 					process_collision(pos)
+					if Input.is_action_pressed("rotate_left"):
+						rotation_direction = 1
+					if Input.is_action_pressed("rotate_right"):
+						rotation_direction = -1
 				if y_offset != 0 or rotation_direction == 0:
 					switch_states(States.WALKING)
 				elif (rotation_direction != 0):

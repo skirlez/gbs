@@ -2305,24 +2305,24 @@ var levels = [
 2,2,2,2,0,3,4,2,2,2,0,0,0,0,0,2,
 2,2,2,2,2,2,2,2,2,2,2,0,0,0,2,2,
 ],
-# [
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
-# ]
+ # [
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ # ]
 ]
 
 var instances = []
@@ -2330,9 +2330,9 @@ const PATTERN_SIZE = 16
 const LEVEL_SIZE = PATTERN_SIZE * 2 
 const RECT_SIZE = 4 
 
-var bluesphere_scene = preload("res://bluesphere.tscn")
-var bumper_scene = preload("res://bumper.tscn")
-var ring_scene = preload("res://ring.tscn")
+var bluesphere_scene = preload("res://gameobjects/sphere/bluesphere.tscn")
+var bumper_scene = preload("res://gameobjects/bumper/bumper.tscn")
+var ring_scene = preload("res://gameobjects/ring/ring.tscn")
 func _ready():
 	
 	var section_instances = [ [],[],[],[] ]
@@ -2351,14 +2351,18 @@ func _ready():
 				var instance
 				if obj == 1:			
 					instance = bumper_scene.instantiate()
+					instance.initialize_meshes()
 				elif obj == 2:
 					instance = bluesphere_scene.instantiate()
+					instance.initialize_meshes()
 					instance.got = true
 					instance.make_red()
 				elif obj == 3:			
 					instance = bluesphere_scene.instantiate()
+					instance.initialize_meshes()
 				elif obj == 4:
 					instance = ring_scene.instantiate()
+					instance.initialize_meshes()
 				else:
 					continue
 				
@@ -2387,6 +2391,7 @@ func _ready():
 								+ i * LEVEL_SIZE + j # movement inside corner
 					] = section_instances[m * 2 + k][i * PATTERN_SIZE + j]
 
+	
 	for i in LEVEL_SIZE:
 		for j in LEVEL_SIZE:
 			var s = RECT_SIZE / 2.0
