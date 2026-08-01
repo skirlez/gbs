@@ -1,7 +1,7 @@
 name: "Godot CI/CD"
 
 env:
-  GODOT_VERSION: 4.7
+  GODOT_VERSION: 4.7.1
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
       pages: write
       id-token: write    
     container:
-      image: barichello/godot-ci:4.7
+      image: barichello/godot-ci:4.7.1
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -39,7 +39,7 @@ jobs:
           sed -i '3 i <script src="coi-serviceworker.js"></script>' build/web/index.html
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build/web
 
