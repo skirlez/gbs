@@ -2305,24 +2305,24 @@ var levels = [
 2,2,2,2,0,3,4,2,2,2,0,0,0,0,0,2,
 2,2,2,2,2,2,2,2,2,2,2,0,0,0,2,2,
 ],
- # [
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
- # ]
+ [
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,1,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+ ]
 ]
 
 var instances = []
@@ -2341,8 +2341,8 @@ func _ready():
 		arr.fill(null)
 		
 	for k in 4:
-		var lvl = levels[RandomNumberGenerator.new().randi_range(0, len(levels) - 1)]
-		#var lvl = levels[len(levels) - 1]
+		#var lvl = levels[RandomNumberGenerator.new().randi_range(0, len(levels) - 1)]
+		var lvl = levels[len(levels) - 1]
 		for i in PATTERN_SIZE:
 			for j in PATTERN_SIZE:
 				var obj = lvl[i * PATTERN_SIZE + j]
@@ -2351,21 +2351,17 @@ func _ready():
 				var instance
 				if obj == 1:			
 					instance = bumper_scene.instantiate()
-					instance.initialize_meshes()
 				elif obj == 2:
 					instance = bluesphere_scene.instantiate()
-					instance.initialize_meshes()
 					instance.got = true
 					instance.make_red()
 				elif obj == 3:			
 					instance = bluesphere_scene.instantiate()
-					instance.initialize_meshes()
 				elif obj == 4:
 					instance = ring_scene.instantiate()
-					instance.initialize_meshes()
 				else:
 					continue
-				
+				instance.visible = false;
 				var pos = Vector2(j, i)
 				# all of the level data is from the "top right" versions of the patterns
 				# TODO: figure out if this is supposed to be rotation or flipping
@@ -2400,3 +2396,8 @@ func _ready():
 				continue
 			instance.transform.origin = Vector3((j - PATTERN_SIZE) * RECT_SIZE - s, 0.5, (i - PATTERN_SIZE) * RECT_SIZE - s)
 			add_child(instance)
+
+func remove_instance_from_array(node: LevelObject):
+	for i in LEVEL_SIZE*LEVEL_SIZE:
+		if instances[i] == node:
+			instances[i] = null

@@ -32,9 +32,11 @@ script = ExtResource("2_lquwl")
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1115808240]
 transform = Transform3D(500, 0, 0, 0, 500, 0, 0, 0, 500, 0, 0, 0)
 mesh = SubResource("PlaneMesh_h2yge")
+metadata/_edit_lock_ = true
 
 [node name="Player" parent="." unique_id=611861365 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+metadata/_edit_lock_ = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Player" unique_id=553844438]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 215.93628, 0)
@@ -42,3 +44,4 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 2
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=1752917082]
 transform = Transform3D(1, 0, 0, 0, 0.76012033, 0.6497824, 0, -0.6497824, 0.76012033, -0.005002439, 5.8317637, 5.149402)
 fov = 57.4
+metadata/_edit_lock_ = true

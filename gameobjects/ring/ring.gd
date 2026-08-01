@@ -1,24 +1,19 @@
-extends Node3D
+extends LevelObject
 class_name Ring
 
 
-var meshes = []
-func initialize_meshes():
-	meshes = [$Mesh]
-	for mesh in Util.clone_meshes($Mesh):
-		meshes.append(mesh)
-		add_child(mesh)
-func _ready() -> void:
-	for mesh in meshes:
-		RenderingServer.instance_set_ignore_culling(mesh.get_instance(), true)
+const LEVEL_SIZE = 32
 
-	
 func get_ring():
 	var collect_sound = $CollectSound
+	
+	var level_objects = $".."
+	level_objects.remove_instance_from_array(self)
+	
 	collect_sound.reparent(get_parent())
 	get_parent().remove_child(self)
 	queue_free()
-	
+
 	collect_sound.play()
 	await collect_sound.finished
 	collect_sound.queue_free()

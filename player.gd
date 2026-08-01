@@ -7,9 +7,10 @@ enum States {
 	ROTATING,
 }
 
+@onready var level_objects = $"../LevelObjects"
+
 var timer: int = 0
 var state = States.WAITING
-
 
 enum WalkAngle {
 	RIGHT = 0,
@@ -27,7 +28,6 @@ const COLLISION_RADIUS = 0.2
 var walk_angle = WalkAngle.UP
 
 const PERM_Y_OFFSET = 1;
-const JUMP_VELOCITY = 0.3;
 var y_offset = 0;
 
 var pos: Vector2i
@@ -44,7 +44,70 @@ const PATTERN_SIZE = 16
 const LEVEL_SIZE = PATTERN_SIZE * 2 
 const RECT_SIZE = 4
 
+const VISIBLE_WIDTH = 10
+const VISIBLE_FORWARDS = 13
+const VISIBLE_BACKWARDS = 1
 
+var visible_instances_x_ranges = []
+var visible_instances_y_ranges = []
+
+func make_old_visible_instances_invisible():	
+	var instances = level_objects.instances
+	var length = len(visible_instances_x_ranges)
+	for i in length:
+		for y in visible_instances_y_ranges[i]:
+			for x in visible_instances_x_ranges[i]:
+				var new_pos = wrap_grid_pos(Vector2(x, y))
+				var instance: LevelObject = instances[new_pos.y * LEVEL_SIZE + new_pos.x]			
+				if instance == null:
+					continue
+				instance.visible = false
+
+func update_visible_instances():
+	make_old_visible_instances_invisible()
+	visible_instances_x_ranges.clear()
+	visible_instances_y_ranges.clear()
+	match state:
+		States.WAITING:
+			make_instances_visible_in_direction(walk_angle)
+		States.WALKING:
+			make_instances_visible_in_direction(walk_angle)
+		States.ROTATING:
+			make_instances_visible_in_direction(int_angle_to_walk_angle(rotation_start))
+			make_instances_visible_in_direction(int_angle_to_walk_angle(rotation_destination))
+	
+func make_instances_visible_in_direction(angle: WalkAngle):
+	# this can and should be done with trig i'm just lazy
+	var range_x
+	var range_y
+	if angle == WalkAngle.UP || angle == WalkAngle.DOWN:
+		if angle == WalkAngle.UP:
+			range_y = range(pos.y - VISIBLE_FORWARDS, pos.y + VISIBLE_BACKWARDS + 1)
+		else:
+			range_y = range(pos.y - VISIBLE_BACKWARDS, pos.y + VISIBLE_FORWARDS + 1)
+		range_x = range(pos.x - VISIBLE_WIDTH, pos.x + VISIBLE_WIDTH + 1)
+	else:
+		if angle == WalkAngle.RIGHT:
+			range_x = range(pos.x - VISIBLE_BACKWARDS, pos.x + VISIBLE_FORWARDS + 1)
+		else:
+			range_x = range(pos.x - VISIBLE_FORWARDS, pos.x + VISIBLE_BACKWARDS + 1)
+		range_y = range(pos.y - VISIBLE_WIDTH, pos.y + VISIBLE_WIDTH + 1)
+	var instances = level_objects.instances
+	for y in range_y:
+		for x in range_x:
+			var unreal_pos = Vector2i(x, y)
+			var new_pos = wrap_grid_pos(unreal_pos)
+			var instance: LevelObject = instances[new_pos.y * LEVEL_SIZE + new_pos.x]			
+			if instance == null:
+				continue
+			if instance.visible:
+				continue
+			instance.visible = true
+			var s = RECT_SIZE / 2.0
+			instance.transform.origin = Vector3((unreal_pos.x - PATTERN_SIZE) * RECT_SIZE - s, 0.5, (unreal_pos.y - PATTERN_SIZE) * RECT_SIZE - s)
+	visible_instances_x_ranges.append(range_x)
+	visible_instances_y_ranges.append(range_y)
+	
 var total_walk_tics = 16 
 var total_rotation_tics = 16
 
@@ -60,21 +123,44 @@ func wrap_grid_pos(grid_pos: Vector2i):
 	grid_pos = Vector2i(grid_pos)
 	if (grid_pos.x < 0):
 		grid_pos.x += LEVEL_SIZE
+	elif (grid_pos.x >= LEVEL_SIZE):
+		grid_pos.x -= LEVEL_SIZE
 	if (grid_pos.y < 0):
 		grid_pos.y += LEVEL_SIZE
-	if (grid_pos.x >= LEVEL_SIZE):
-		grid_pos.x -= LEVEL_SIZE
-	if (grid_pos.y >= LEVEL_SIZE):
+	elif (grid_pos.y >= LEVEL_SIZE):
 		grid_pos.y -= LEVEL_SIZE
 	return grid_pos
+func int_angle_to_walk_angle(angle: int) -> WalkAngle:
+	var a = angle % 4
+	if a < 0:
+		a += 4
+	return a as WalkAngle
+
+
+func get_tile_for_collision():
+	var progress = timer / float(total_walk_tics)
+	if progress <= COLLISION_RADIUS:
+		return walk_start
+	if progress >= 1 - COLLISION_RADIUS:
+		return wrap_grid_pos(walk_destination)
+	return null
+func process_collision(tile):
+	if (tile == null):
+		return
+	var index = tile.y * LEVEL_SIZE + tile.x
+	var instances =	level_objects.instances
+	if index >= 0 and index <= len(instances) - 1:
+		var inst = instances[index]
+		if is_instance_valid(inst):
+			on_collide_with_instance(inst)
 
 
 func _ready():
-	pos.x = 15
-	pos.y = 15
+	pos.x = 28
+	pos.y = 16
 	update_origin(pos)
 	update_basis(walk_angle)
-	
+	update_visible_instances()	
 func switch_states(new):
 	timer = 0
 	state = new
@@ -89,6 +175,7 @@ func switch_states(new):
 			rotation_start = walk_angle
 			rotation_destination = rotation_start + rotation_direction
 			rotation_direction = 0
+	update_visible_instances()
 func update_basis(angle):
 	transform.basis = Basis.from_euler(Vector3(0, (angle * PI / 2) - PI / 2, 0)) 
 func update_origin(new_pos):
@@ -98,7 +185,7 @@ func _process(_delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("player_pos", transform.origin)
 	var time = (Time.get_ticks_msec() - state_epoch)
 	var frame_times = time * 60.0 / 1000.0
-
+	
 	# frame_times = timer
 	match state:
 		States.WALKING:
@@ -108,22 +195,7 @@ func _process(_delta: float) -> void:
 			var angle = lerp(float(rotation_start), float(rotation_destination), min(1, frame_times / float(total_rotation_tics)))
 			update_basis(angle)
 
-func get_tile_for_collision():
-	var progress = timer / float(total_walk_tics)
-	if progress <= COLLISION_RADIUS:
-		return walk_start
-	if progress >= 1 - COLLISION_RADIUS:
-		return wrap_grid_pos(walk_destination)
-	return null
-func process_collision(tile):
-	if (tile == null):
-		return
-	var index = tile.y * LEVEL_SIZE + tile.x
-	var instances =	$"../LevelObjects".instances
-	if index >= 0 and index <= len(instances) - 1:
-		var inst = instances[index]
-		if is_instance_valid(inst):
-			on_collide_with_instance(inst)
+
 
 func _physics_process(_delta: float) -> void:
 	# if not Input.is_action_just_pressed("advance") and state != States.WAITING:
@@ -167,10 +239,7 @@ func _physics_process(_delta: float) -> void:
 					switch_states(States.WALKING)
 		States.ROTATING:
 			if (timer == total_rotation_tics):
-				var angle_final = rotation_destination % 4
-				if angle_final < 0:
-					angle_final += 4
-				walk_angle = angle_final as WalkAngle 
+				walk_angle = int_angle_to_walk_angle(rotation_destination)
 				update_basis(walk_angle)
 				switch_states(States.WALKING)
 	
