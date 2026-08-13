@@ -1,6 +1,5 @@
 extends Node3D
 
-
 enum States {
 	WAITING,
 	WALKING, 
@@ -22,7 +21,7 @@ var jump_timer = 0
 const TOTAL_JUMP_TICS = 17 * 2
 const VISUAL_JUMP_HEIGHT = 2.5
 
-const WALK_ANGLE_OFFSETS = [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]
+const CARDINAL_OFFSETS = [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]
 const COLLISION_RADIUS = 0.2
 
 var walk_angle = WalkAngle.UP
@@ -143,7 +142,6 @@ func get_tile_for_collision():
 		return walk_start
 	if progress >= 1 - COLLISION_RADIUS:
 		return wrap_grid_pos(walk_destination)
-	return null
 func process_collision(tile):
 	if (tile == null):
 		return
@@ -152,7 +150,7 @@ func process_collision(tile):
 	if index >= 0 and index <= len(instances) - 1:
 		var inst = instances[index]
 		if is_instance_valid(inst):
-			on_collide_with_instance(inst)
+			on_collide_with_instance(tile, inst)
 
 
 func _ready():
@@ -169,7 +167,7 @@ func switch_states(new):
 		States.WALKING:
 			walk_start = Vector2(pos.x, pos.y)
 			@warning_ignore("integer_division")			
-			var dest_offset = WALK_ANGLE_OFFSETS[walk_angle]
+			var dest_offset = CARDINAL_OFFSETS[walk_angle]
 			walk_destination = walk_start + dest_offset
 		States.ROTATING:
 			rotation_start = walk_angle
@@ -254,10 +252,11 @@ func _physics_process(_delta: float) -> void:
 			jump_timer = -1
 	$Mesh.transform.origin.y = y_offset
 
-func on_collide_with_instance(node: Node3D) -> void:
+func on_collide_with_instance(tile: Vector2i, node: Node3D) -> void:
 	if node is BlueSphere:
 		if node.got:
 			return
 		node.get_blue_sphere()
+		level_objects.ring_transmutation_routine(tile)
 	if node is Ring:
 		node.get_ring()

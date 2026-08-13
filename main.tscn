@@ -4,7 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://bsr8s44xd2od6" path="res://player.tscn" id="1_ig7tw"]
 [ext_resource type="AudioStream" uid="uid://boaq7n7liavs6" path="res://sounds/music.mp3" id="1_lquwl"]
 [ext_resource type="Texture2D" uid="uid://b8n87laidbkga" path="res://pattern.png" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://dug27syuaceop" path="res://level_data.gd" id="2_272bh"]
 [ext_resource type="Script" uid="uid://3l1a8hue7r8a" path="res://level_objects.gd" id="2_lquwl"]
+[ext_resource type="AudioStream" uid="uid://j8530geiq3k" path="res://sounds/ringspill.wav" id="3_7mycd"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 render_priority = 0
@@ -26,8 +28,16 @@ stream = ExtResource("1_lquwl")
 autoplay = true
 parameters/looping = true
 
-[node name="LevelObjects" type="Node" parent="." unique_id=1894930888]
+[node name="LevelData" type="Node" parent="." unique_id=289932806]
+script = ExtResource("2_272bh")
+metadata/_custom_type_script = "uid://dug27syuaceop"
+
+[node name="LevelObjects" type="Node" parent="." unique_id=1894930888 node_paths=PackedStringArray("level_data")]
 script = ExtResource("2_lquwl")
+level_data = NodePath("../LevelData")
+
+[node name="RingTransmute" type="AudioStreamPlayer" parent="LevelObjects" unique_id=1554377319]
+stream = ExtResource("3_7mycd")
 
 [node name="Ground" type="MeshInstance3D" parent="." unique_id=1115808240]
 transform = Transform3D(500, 0, 0, 0, 500, 0, 0, 0, 500, 0, 0, 0)
