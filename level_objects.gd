@@ -1,7 +1,7 @@
 class_name LevelObjects
 extends Node
 
-var instances = []
+var objects = []
 const PATTERN_SIZE = 16
 const LEVEL_SIZE = PATTERN_SIZE * 2 
 const RECT_SIZE = 4 
@@ -12,10 +12,29 @@ const RECT_SIZE = 4
 var bluesphere_scene = preload("res://gameobjects/sphere/bluesphere.tscn")
 var bumper_scene = preload("res://gameobjects/bumper/bumper.tscn")
 var ring_scene = preload("res://gameobjects/ring/ring.tscn")
+
+enum ObjectType {
+	EMPTY = 0,
+	BUMPER = 1,
+	RED_SPHERE = 2,
+	BLUE_SPHERE = 3,
+	RING = 4
+}
+
+# visual is always null for EMPTY,
+# when the game runs headless, visual is always null
+class LevelObject:
+	var type: ObjectType
+	var visual: LevelObjectVisual
+
+
+var sphere_amount = 0
+var ring_amount = 0
+
 func _ready():
 	
-	var section_instances = [ [],[],[],[] ]
-	for arr in section_instances:
+	var section_objects = [ [],[],[],[] ]
+	for arr in section_objects:
 		arr.resize(PATTERN_SIZE * PATTERN_SIZE)
 		arr.fill(null)
 		
@@ -24,23 +43,36 @@ func _ready():
 		#var lvl = levels[len(levels) - 1]
 		for i in PATTERN_SIZE:
 			for j in PATTERN_SIZE:
-				var obj = lvl[i * PATTERN_SIZE + j]
-				if obj == 0:
-					continue
-				var instance
-				if obj == 1:			
-					instance = bumper_scene.instantiate()
-				elif obj == 2:
-					instance = bluesphere_scene.instantiate()
-					instance.got = true
-					instance.make_red()
-				elif obj == 3:			
-					instance = bluesphere_scene.instantiate()
-				elif obj == 4:
-					instance = ring_scene.instantiate()
+			
+
+				var type: ObjectType = lvl[i * PATTERN_SIZE + j]	
+				var instance: LevelObjectVisual
+				
+				if Global.VISUALS_ENABLED:
+					if type == ObjectType.EMPTY:
+						instance = null
+					elif type == ObjectType.BUMPER:			
+						instance = bumper_scene.instantiate()
+					elif type == ObjectType.RED_SPHERE:
+						instance = bluesphere_scene.instantiate()
+						instance.got = true
+						instance.make_red()
+					elif type == ObjectType.BLUE_SPHERE:			
+						instance = bluesphere_scene.instantiate()
+					elif type == ObjectType.RING:
+						instance = ring_scene.instantiate()
+					else:
+						type = ObjectType.EMPTY
+						instance = null
+						
+					if instance != null:
+						instance.visible = false
 				else:
-					continue
-				instance.visible = false;
+					instance = null
+				var obj: LevelObject = LevelObject.new() 
+				obj.type = type
+				obj.visual = instance
+				
 				var pos = Vector2(j, i)
 				# all of the level data is from the "top right" versions of the patterns
 				# TODO: figure out if this is supposed to be rotation or flipping
@@ -51,37 +83,72 @@ func _ready():
 					pos.y = PATTERN_SIZE - pos.y - 1
 				if k == 3:
 					pos.y = PATTERN_SIZE - pos.y - 1
+
 				
-				section_instances[k][pos.y * PATTERN_SIZE + pos.x] = instance
-	instances.resize(LEVEL_SIZE * LEVEL_SIZE)
-	instances.fill(null)
+				section_objects[k][pos.y * PATTERN_SIZE + pos.x] = obj
+	objects.resize(LEVEL_SIZE * LEVEL_SIZE)
+	objects.fill(null)
 
 	# horrible
 	for m in 2:
 		for i in PATTERN_SIZE:
 			for k in 2:
 				for j in PATTERN_SIZE:
-					instances[(m * LEVEL_SIZE * LEVEL_SIZE / 2.0) # bottom half
+					objects[(m * LEVEL_SIZE * LEVEL_SIZE / 2.0) # bottom half
 								+ k * PATTERN_SIZE	# in right corner or not
 								+ i * LEVEL_SIZE + j # movement inside corner
-					] = section_instances[m * 2 + k][i * PATTERN_SIZE + j]
+					] = section_objects[m * 2 + k][i * PATTERN_SIZE + j]
 
-	
+
+	if not Global.VISUALS_ENABLED:
+		return
 	for i in LEVEL_SIZE:
 		for j in LEVEL_SIZE:
 			var s = RECT_SIZE / 2.0
-			var instance = instances[i * LEVEL_SIZE + j]
-			if instance == null:
+			var obj = objects[i * LEVEL_SIZE + j]
+			if obj.visual == null:
 				continue
-			instance.transform.origin = Vector3((j - PATTERN_SIZE) * RECT_SIZE - s, 0.5, (i - PATTERN_SIZE) * RECT_SIZE - s)
-			add_child(instance)
-
-func remove_instance_from_array(node: LevelObject):
-	for i in LEVEL_SIZE*LEVEL_SIZE:
-		if instances[i] == node:
-			instances[i] = null
+			obj.visual.transform.origin = Vector3((j - PATTERN_SIZE) * RECT_SIZE - s, 0.5, (i - PATTERN_SIZE) * RECT_SIZE - s)
+			add_child(obj.visual)
 
 
+	for i in LEVEL_SIZE:
+		for j in LEVEL_SIZE:
+			var type: ObjectType = objects[i * LEVEL_SIZE + j].type
+			if (type == ObjectType.BLUE_SPHERE):
+				sphere_amount += 1
+			elif (type == ObjectType.RING): # TODO
+				ring_amount += 1
+	update_sphere_count.emit(sphere_amount)
+	update_ring_count.emit(ring_amount)
+	level_loaded.emit(objects)
+			
+signal level_loaded(objects: Array)
+
+func on_collide_with_object(tile: Vector2i):
+	var index = tile.y * LEVEL_SIZE + tile.x
+	if index >= 0 and index <= len(objects) - 1:
+		var object: LevelObject = objects[index]
+		match object.type:
+			ObjectType.BLUE_SPHERE:
+				object.type = ObjectType.RED_SPHERE
+				if Global.VISUALS_ENABLED:
+					object.visual.get_blue_sphere()
+				sphere_amount -= 1
+				update_sphere_count.emit(sphere_amount)
+				ring_transmutation_routine(tile)
+			ObjectType.RING:
+				objects[index].type = ObjectType.EMPTY
+				if Global.VISUALS_ENABLED:
+					object.visual.get_ring()
+					objects[index].visual = null
+				ring_amount -= 1
+				update_ring_count.emit(ring_amount)
+
+signal update_sphere_count(sphere_amount: int)
+signal update_ring_count(ring_amount: int)
+
+			
 const PERIMETER_GROUP = 0
 const NO_GROUP_YET = -1
 const NOT_BLUE_SPHERE_GROUP = -2
@@ -112,7 +179,7 @@ func ring_transmutation_routine(tile: Vector2i):
 	for x in width:
 		for y in height:
 			var index = (y + top_left.y) * LEVEL_SIZE + (x + top_left.x)
-			if instances[index] is not BlueSphere:
+			if objects[index].type != ObjectType.BLUE_SPHERE and objects[index].type != ObjectType.RED_SPHERE:
 				rect[y * width + x] = NOT_BLUE_SPHERE_GROUP
 			else:
 				rect[y * width + x] = NO_GROUP_YET
@@ -133,7 +200,7 @@ func ring_transmutation_routine(tile: Vector2i):
 				interior_group = group
 			group += 1
 	if interior_group == null:
-		return # no interior
+		return # no interior, like in a 2x2
 	var group_count = group - 1
 	if group_count > 2:
 		print("something has gone very wrong:")
@@ -149,22 +216,24 @@ func ring_transmutation_routine(tile: Vector2i):
 		for y in height:
 			if rect[y * width + x] == interior_group:
 				var index = (y + top_left.y) * LEVEL_SIZE + (x + top_left.x)
-				var inst = instances[index]
-				if inst is not BlueSphere:
-					continue
-				if inst.got:
+				var obj = objects[index]
+				if obj.type != ObjectType.BLUE_SPHERE:
 					continue
 				interior[index] = true
 	# if there aren't any interior spheres besides the path, we leave
 	if len(interior) == len(all_path_tiles):
 		return
 	
+	$RingTransmute.play()
 	for index in interior.keys():
-		instances[index].queue_free()
-		var ring = ring_scene.instantiate()
-		add_child(ring)
-		instances[index] = ring
-		$RingTransmute.play()
+		var obj = objects[index]
+		if Global.VISUALS_ENABLED:
+			obj.visual.queue_free()
+			var ring = ring_scene.instantiate()
+			add_child(ring)
+			obj.visual = ring
+		obj.type = ObjectType.RING
+
 		
 const CARDINAL_OFFSETS = [Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0), Vector2i(0, 1)]
 func find_longest_adjacent_roundabout_shortest_path_or_null(tile: Vector2i):
@@ -196,10 +265,8 @@ func find_shortest_path(start: Vector2i, start_offset : Vector2i, end: Vector2i)
 func process(queue, predecessor_dirs, offset, new_tile):
 	if new_tile.x < 0 or new_tile.y < 0 or new_tile.x >= LEVEL_SIZE or new_tile.y >= LEVEL_SIZE:
 		return
-	var inst = instances[new_tile.y * LEVEL_SIZE + new_tile.x]
-	if inst is not BlueSphere:
-		return
-	if not inst.got:
+	var obj = objects[new_tile.y * LEVEL_SIZE + new_tile.x]
+	if (obj.type != ObjectType.RED_SPHERE):
 		return
 	if new_tile in predecessor_dirs:
 		return

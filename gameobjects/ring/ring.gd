@@ -1,14 +1,10 @@
-extends LevelObject
 class_name Ring
-
+extends LevelObjectVisual
 
 const LEVEL_SIZE = 32
 
 func get_ring():
 	var collect_sound = $CollectSound
-	
-	var level_objects = $".."
-	level_objects.remove_instance_from_array(self)
 	
 	collect_sound.reparent(get_parent())
 	get_parent().remove_child(self)

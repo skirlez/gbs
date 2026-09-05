@@ -1,12 +1,18 @@
 [gd_scene format=3 uid="uid://bcxd1dbcn5on3"]
 
 [ext_resource type="Shader" uid="uid://deio1mkge5wwc" path="res://shaders/ground.gdshader" id="1_1bvp3"]
-[ext_resource type="PackedScene" uid="uid://bsr8s44xd2od6" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://bsr8s44xd2od6" path="res://gameobjects/player/player.tscn" id="1_ig7tw"]
 [ext_resource type="AudioStream" uid="uid://boaq7n7liavs6" path="res://sounds/music.mp3" id="1_lquwl"]
 [ext_resource type="Texture2D" uid="uid://b8n87laidbkga" path="res://pattern.png" id="2_0xm2m"]
+[ext_resource type="FontFile" uid="uid://bi23taiun1rnp" path="res://ui/numbers.png" id="2_4c57u"]
 [ext_resource type="Script" uid="uid://dug27syuaceop" path="res://level_data.gd" id="2_272bh"]
 [ext_resource type="Script" uid="uid://3l1a8hue7r8a" path="res://level_objects.gd" id="2_lquwl"]
 [ext_resource type="AudioStream" uid="uid://j8530geiq3k" path="res://sounds/ringspill.wav" id="3_7mycd"]
+[ext_resource type="Script" uid="uid://cp3aq1232qeqd" path="res://ui/spheres_label.gd" id="3_dg77c"]
+[ext_resource type="Script" uid="uid://dnrkexwis71qj" path="res://ui/rings_label.gd" id="5_ycdy4"]
+[ext_resource type="Script" uid="uid://bm001d58bprj4" path="res://culler.gd" id="7_ycdy4"]
+[ext_resource type="Texture2D" uid="uid://ci6ghaq4b4168" path="res://ui/ring_counter.png" id="8_5vw27"]
+[ext_resource type="Texture2D" uid="uid://ct85ctsels6v2" path="res://ui/sphere_counter.png" id="9_kek77"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 render_priority = 0
@@ -23,10 +29,70 @@ subdivide_depth = 512
 
 [node name="Root" type="Node3D" unique_id=1602515127]
 
+[node name="Control" type="Control" parent="." unique_id=882604663]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control" unique_id=698289686]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -134.0
+offset_right = 134.0
+offset_bottom = 24.0
+grow_horizontal = 2
+scale = Vector2(1.5, 1.5)
+pivot_offset_ratio = Vector2(0.5, 0)
+offset_transform_enabled = true
+offset_transform_position_ratio = Vector2(0, 0.2)
+offset_transform_visual_only = false
+theme_override_constants/separation = 100
+alignment = 1
+
+[node name="Spheres" type="TextureRect" parent="Control/HBoxContainer" unique_id=190115976]
+layout_mode = 2
+texture = ExtResource("9_kek77")
+stretch_mode = 2
+
+[node name="SpheresLabel" type="RichTextLabel" parent="Control/HBoxContainer/Spheres" unique_id=1793354638]
+layout_mode = 0
+offset_left = 5.0000005
+offset_top = -0.79999924
+offset_right = 78.00001
+offset_bottom = 33.2
+theme_override_fonts/normal_font = ExtResource("2_4c57u")
+text = "676"
+autowrap_mode = 0
+script = ExtResource("3_dg77c")
+
+[node name="Rings" type="TextureRect" parent="Control/HBoxContainer" unique_id=1394781421]
+layout_mode = 2
+texture = ExtResource("8_5vw27")
+stretch_mode = 2
+
+[node name="RingsLabel" type="RichTextLabel" parent="Control/HBoxContainer/Rings" unique_id=205422703]
+layout_mode = 0
+offset_left = 24.0
+offset_top = -0.79999924
+offset_right = 97.00001
+offset_bottom = 33.2
+theme_override_fonts/normal_font = ExtResource("2_4c57u")
+text = "000"
+autowrap_mode = 0
+script = ExtResource("5_ycdy4")
+
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=346635477]
 stream = ExtResource("1_lquwl")
 autoplay = true
 parameters/looping = true
+
+[node name="Culler" type="Node" parent="." unique_id=1898631563]
+script = ExtResource("7_ycdy4")
 
 [node name="LevelData" type="Node" parent="." unique_id=289932806]
 script = ExtResource("2_272bh")
@@ -44,8 +110,10 @@ transform = Transform3D(500, 0, 0, 0, 500, 0, 0, 0, 500, 0, 0, 0)
 mesh = SubResource("PlaneMesh_h2yge")
 metadata/_edit_lock_ = true
 
-[node name="Player" parent="." unique_id=611861365 instance=ExtResource("1_ig7tw")]
+[node name="Player" parent="." unique_id=611861365 node_paths=PackedStringArray("level_objects", "culler") instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+level_objects = NodePath("../LevelObjects")
+culler = NodePath("../Culler")
 metadata/_edit_lock_ = true
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Player" unique_id=553844438]
@@ -55,3 +123,7 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 2
 transform = Transform3D(1, 0, 0, 0, 0.76012033, 0.6497824, 0, -0.6497824, 0.76012033, -0.005002439, 5.8317637, 5.149402)
 fov = 57.4
 metadata/_edit_lock_ = true
+
+[connection signal="level_loaded" from="LevelObjects" to="Culler" method="_on_level_objects_level_loaded"]
+[connection signal="update_ring_count" from="LevelObjects" to="Control/HBoxContainer/Rings/RingsLabel" method="_on_level_objects_update_ring_count"]
+[connection signal="update_sphere_count" from="LevelObjects" to="Control/HBoxContainer/Spheres/SpheresLabel" method="_on_level_objects_update_sphere_count"]

@@ -1,2 +1,2 @@
-extends LevelObject
+extends LevelObjectVisual
 class_name Bumper

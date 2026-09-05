@@ -1,6 +1,5 @@
-extends LevelObject
-
 class_name BlueSphere
+extends LevelObjectVisual
 
 const LEVEL_SIZE = 32
 const RECT_SIZE = 4 

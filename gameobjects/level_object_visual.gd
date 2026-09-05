@@ -1,4 +1,4 @@
-class_name LevelObject
+class_name LevelObjectVisual
 extends Node3D
 
 
